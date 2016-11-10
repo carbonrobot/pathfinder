@@ -1,0 +1,29 @@
+{
+  "name": "pathfinder",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run watch | npm run serve",
+    "serve": "./node_modules/.bin/http-server -p 7654 -s -o",
+    "watch": "node ./node_modules/livereload/bin/livereload.js ./src",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carbonrobot/pathfinder.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/carbonrobot/pathfinder/issues"
+  },
+  "homepage": "https://github.com/carbonrobot/pathfinder#readme",
+  "dependencies": {
+    "craftyjs": "^0.7.1"
+  },
+  "devDependencies": {
+    "livereload": "^0.6.0",
+    "http-server": "^0.9.0"
+  }
+}
