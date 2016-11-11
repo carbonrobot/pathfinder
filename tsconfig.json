@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "outFile": "public/app.js",
+        "rootDir": "src/scripts",
+        "target": "es5",
+        "noImplicitAny": false,
+        "sourceMap": true
+    }
+}

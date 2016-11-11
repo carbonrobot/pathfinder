@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm run watch | npm run serve",
-    "serve": "./node_modules/.bin/http-server -p 7654 -s -o",
-    "watch": "node ./node_modules/livereload/bin/livereload.js ./src",
+    "start": "npm run watchjs | npm run watch | npm run serve",
+    "serve": "./node_modules/.bin/http-server ./ -p 7654 -s -o",
+    "watch": "node ./node_modules/livereload/bin/livereload.js ./public",
+    "watchjs": "tsc --watch --rootDir src/scripts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,11 +20,10 @@
     "url": "https://github.com/carbonrobot/pathfinder/issues"
   },
   "homepage": "https://github.com/carbonrobot/pathfinder#readme",
-  "dependencies": {
-    "craftyjs": "^0.7.1"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "http-server": "^0.9.0",
     "livereload": "^0.6.0",
-    "http-server": "^0.9.0"
+    "typescript": "^2.0.9"
   }
 }
