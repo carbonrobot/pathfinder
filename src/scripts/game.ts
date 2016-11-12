@@ -18,16 +18,19 @@ const gameboard = [
 ];
 
 const map = new Map(gameboard);
-map.draw(CANVASID);
 
 const player = new Player();
 player.moveTo(3, 3);
-player.draw(map);
 
 const target = new Player();
 target.c = '#CC0000';
 target.moveTo(8, 3);
-target.draw(map);
 
 const path = new Path(map, player, target);
+
+// render in the correct order
+map.draw(CANVASID);
 path.draw();
+
+player.draw(map);
+target.draw(map);

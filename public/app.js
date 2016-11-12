@@ -100,15 +100,19 @@ var Path = (function () {
         this.target = target;
         this.open = [];
         this.closed = [];
+        this.startTile = this.map.getTileAt(source);
+        this.targetTile = this.map.getTileAt(target);
     }
     Path.prototype.draw = function () {
-        var start = this.map.getTileAt(this.source);
-        this.addToOpen(start, null, 0, 0);
+        this.addToOpen(this.startTile, null, 0, 0);
         this.moveToClosed(this.open[0]); // shortcut
         this.seek(this.closed[0]);
     };
     Path.prototype.seek = function (parent) {
         var _this = this;
+        if (parent.tile === this.targetTile) {
+            return;
+        }
         console.log('seeking for', parent.tile.x, parent.tile.y);
         var adj = this.map.getAdjacentTiles(parent.tile);
         console.log('found', adj.length, 'adjacent tiles');
@@ -117,14 +121,35 @@ var Path = (function () {
         });
         console.log('found', adj.length, 'adjacent tiles not blocked or closed');
         adj.forEach(function (tile) {
-            var g = 0;
-            var h = 0;
-            _this.addToOpen(tile, parent, g, h);
+            var g = _this.getMoveCost(parent.tile, tile) + parent.g;
+            var h = _this.getHCost(tile, _this.targetTile);
+            var openTile = _this.isOpen(tile);
+            if (openTile) {
+                // check path cost, update if lower
+                if ((g + h) < openTile.getFCost()) {
+                    console.log(g, h, openTile.getFCost());
+                }
+            }
+            else {
+                _this.addToOpen(tile, parent, g, h);
+            }
         });
         console.log('now', this.open.length, 'tiles on the open list');
         this.open.forEach(function (p) {
-            p.draw();
+            p.draw('#00CC00');
         });
+        var next = this.open[0];
+        this.open.forEach(function (p) {
+            if (p.getFCost() < next.getFCost()) {
+                next = p;
+            }
+        });
+        this.moveToClosed(next);
+        console.log('now', this.closed.length, 'tiles on the closed list');
+        this.closed.forEach(function (p) {
+            p.draw('#1368F2');
+        });
+        this.seek(next);
     };
     Path.prototype.addToOpen = function (tile, parent, g, h) {
         console.log('adding', tile.x, tile.y, 'to open list');
@@ -151,6 +176,22 @@ var Path = (function () {
         var tile = this.open.splice(this.open.indexOf(element), 1)[0];
         this.closed.push(tile);
     };
+    Path.prototype.getMoveCost = function (from, to) {
+        if (from === to) {
+            return 0;
+        }
+        // adj tiles = 10
+        // angle tiles = 14, sqrt(2)*10
+        if (from.x === to.x || from.y === to.y) {
+            return 10;
+        }
+        return 14;
+    };
+    Path.prototype.getHCost = function (from, to) {
+        var dx = Math.abs(from.x - to.x) / 10;
+        var dy = Math.abs(from.y - to.y) / 10;
+        return dx + dy;
+    };
     return Path;
 }());
 var PathElement = (function () {
@@ -160,14 +201,28 @@ var PathElement = (function () {
         this.g = g;
         this.h = h;
     }
-    PathElement.prototype.draw = function () {
-        if (this._e) {
-            this._e.destroy();
-        }
+    PathElement.prototype.getFCost = function () {
+        return this.g + this.h;
+    };
+    PathElement.prototype.draw = function (c) {
         var t = new Tile(this.tile.x, this.tile.y, this.tile.w, this.tile.h);
         t.draw();
-        t.border('#00CC00');
-        this._e = t;
+        t.border(c);
+        // g cost
+        Crafty.e('2D, DOM, Text')
+            .attr({ x: this.tile.x + 10, y: this.tile.y + 80, w: 25, h: 25 })
+            .textColor('white')
+            .text(this.g.toString());
+        // h cost
+        Crafty.e('2D, DOM, Text')
+            .attr({ x: this.tile.x + 80, y: this.tile.y + 80, w: 25, h: 25 })
+            .textColor('white')
+            .text(this.h.toString());
+        // f cost
+        Crafty.e('2D, DOM, Text')
+            .attr({ x: this.tile.x + 10, y: this.tile.y + 10, w: 25, h: 25 })
+            .textColor('white')
+            .text((this.getFCost()).toString());
     };
     return PathElement;
 }());
@@ -188,14 +243,15 @@ var gameboard = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ];
 var map = new Map(gameboard);
-map.draw(CANVASID);
 var player = new Player();
 player.moveTo(3, 3);
-player.draw(map);
 var target = new Player();
 target.c = '#CC0000';
 target.moveTo(8, 3);
-target.draw(map);
 var path = new Path(map, player, target);
+// render in the correct order
+map.draw(CANVASID);
 path.draw();
+player.draw(map);
+target.draw(map);
 //# sourceMappingURL=app.js.map
