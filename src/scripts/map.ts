@@ -22,9 +22,12 @@ class Map {
             var y = i * (Map.TILEHEIGHT);
             for (var j = 0; j < this.cols; j++) {
                 const x = j * (Map.TILEWIDTH);
-                // const idx = i * this.cols + j;
-                // const val = gameboard[idx]; 
+                const idx = i * this.cols + j;
+                const val = gameboard[idx]; 
                 const t = new Tile(x, y, Map.TILEWIDTH, Map.TILEHEIGHT);
+                if(val === 8){
+                    t.isBlocked = true;
+                }
                 this.tiles.push(t);
             }
         }

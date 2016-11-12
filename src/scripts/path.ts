@@ -13,6 +13,7 @@ class Path {
         this.addToOpen(this.startTile, null, 0, 0);
         this.moveToClosed(this.open[0]); // shortcut
         this.seek(this.closed[0]);
+        this.reveal(this.closed[this.closed.length - 1]);
     }
 
     private seek(parent: PathElement){
@@ -35,9 +36,10 @@ class Path {
 
             const openTile = this.isOpen(tile);
             if(openTile){
-                // check path cost, update if lower
-                if((g + h) < openTile.getFCost()){
-                    console.log(g, h, openTile.getFCost());
+                // check path cost, update parent if lower
+                if(g < openTile.g){
+                    openTile.parent = parent;
+                    openTile.g = g;
                 }
             }
             else{
@@ -66,13 +68,20 @@ class Path {
         this.seek(next);
     }
 
+    private reveal(p: PathElement){
+        if(p){
+            p.highlight();
+            this.reveal(p.parent);
+        }
+    }
+
     private addToOpen(tile: Tile, parent: PathElement, g: number, h: number){
         console.log('adding', tile.x, tile.y, 'to open list');
         this.open.push(new PathElement(tile, parent, g, h));
     }
 
     private isBlocked(tile: Tile){
-        return false;
+        return tile.isBlocked;
     }
 
     private isOpen(tile: Tile){
@@ -147,5 +156,9 @@ class PathElement {
             .attr({ x: this.tile.x + 10, y: this.tile.y + 10, w: 25, h: 25 })
             .textColor('white')
             .text((this.getFCost()).toString());
+    }
+
+    public highlight(){
+        new Tile(this.tile.x + 40, this.tile.y + 40, 20, 20, 'yellow').draw();
     }
 }

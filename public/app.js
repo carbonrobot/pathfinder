@@ -1,12 +1,25 @@
 var Tile = (function () {
     function Tile(x, y, w, h, c) {
-        if (c === void 0) { c = '#000000'; }
+        if (c === void 0) { c = Tile.DefaultColor; }
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
         this.c = c;
+        this._isBlocked = false;
+        this.baseMovementCost = 10;
     }
+    Object.defineProperty(Tile.prototype, "isBlocked", {
+        get: function () {
+            return this._isBlocked;
+        },
+        set: function (value) {
+            this._isBlocked = value;
+            this.c = this._isBlocked ? Tile.BlockedColor : Tile.DefaultColor;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Tile.prototype.draw = function () {
         this._e = Crafty.e('2D, DOM, Color, Text')
             .attr({ x: this.x, y: this.y, w: this.w, h: this.h })
@@ -22,6 +35,8 @@ var Tile = (function () {
     Tile.prototype.border = function (c) {
         this._e.css('border', '1px solid ' + c);
     };
+    Tile.DefaultColor = '#000000';
+    Tile.BlockedColor = '#4f311c';
     return Tile;
 }());
 /// <reference path="tile.ts" />
@@ -37,9 +52,12 @@ var Map = (function () {
             var y = i * (Map.TILEHEIGHT);
             for (var j = 0; j < this.cols; j++) {
                 var x = j * (Map.TILEWIDTH);
-                // const idx = i * this.cols + j;
-                // const val = gameboard[idx]; 
+                var idx = i * this.cols + j;
+                var val = gameboard[idx];
                 var t = new Tile(x, y, Map.TILEWIDTH, Map.TILEHEIGHT);
+                if (val === 8) {
+                    t.isBlocked = true;
+                }
                 this.tiles.push(t);
             }
         }
@@ -107,6 +125,7 @@ var Path = (function () {
         this.addToOpen(this.startTile, null, 0, 0);
         this.moveToClosed(this.open[0]); // shortcut
         this.seek(this.closed[0]);
+        this.reveal(this.closed[this.closed.length - 1]);
     };
     Path.prototype.seek = function (parent) {
         var _this = this;
@@ -125,9 +144,10 @@ var Path = (function () {
             var h = _this.getHCost(tile, _this.targetTile);
             var openTile = _this.isOpen(tile);
             if (openTile) {
-                // check path cost, update if lower
-                if ((g + h) < openTile.getFCost()) {
-                    console.log(g, h, openTile.getFCost());
+                // check path cost, update parent if lower
+                if (g < openTile.g) {
+                    openTile.parent = parent;
+                    openTile.g = g;
                 }
             }
             else {
@@ -151,12 +171,18 @@ var Path = (function () {
         });
         this.seek(next);
     };
+    Path.prototype.reveal = function (p) {
+        if (p) {
+            p.highlight();
+            this.reveal(p.parent);
+        }
+    };
     Path.prototype.addToOpen = function (tile, parent, g, h) {
         console.log('adding', tile.x, tile.y, 'to open list');
         this.open.push(new PathElement(tile, parent, g, h));
     };
     Path.prototype.isBlocked = function (tile) {
-        return false;
+        return tile.isBlocked;
     };
     Path.prototype.isOpen = function (tile) {
         return this.findInList(this.open, tile);
@@ -223,6 +249,9 @@ var PathElement = (function () {
             .attr({ x: this.tile.x + 10, y: this.tile.y + 10, w: 25, h: 25 })
             .textColor('white')
             .text((this.getFCost()).toString());
+    };
+    PathElement.prototype.highlight = function () {
+        new Tile(this.tile.x + 40, this.tile.y + 40, 20, 20, 'yellow').draw();
     };
     return PathElement;
 }());
